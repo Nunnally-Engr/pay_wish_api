@@ -14,6 +14,10 @@ const cors = require('cors')({origin: true})
 // 参照設定
 const claim = require('./src/claim')
 
+const moment = require('moment-timezone')
+// Timezoneを日本に設定
+moment.tz.setDefault("Asia/Tokyo")
+
 // ========================================================================
 // notificationsテーブルにデータが登録・更新されたらメール通知飛ばす処理
 // ========================================================================
@@ -28,7 +32,10 @@ exports.onStocksCreated = functions.firestore
     const document = change.after.exists ? change.after.data() : null
 
     if (document) {
-      notification.paymentNotifier(change, context, document)
+      // TODO: 
+      // 本当は検知して通知させたいけど、CloudFunctionsでテーブルを登録して、
+      // それを検知させると重複で走る場合があるため一旦コメントアウト
+      // await notification.paymentNotifier(document.receiver, context.params.notificationsKey)
     }
 
   })
@@ -62,15 +69,15 @@ exports.claimsSelect = functions.https.onRequest(ex2)
 // ========================================================================
 // 【アプリからのトリガー】請求情報を(GCP)CloudSQL:MySQLのテーブルへ登録
 // ========================================================================
-exports.onCallClaimsCreate = functions.https.onCall((data, context) => {
-  let returnContext = claim.claimsCreateByApp(data, context)
-  return returnContext
+exports.onCallClaimsCreate = functions.https.onCall(async (data, context) => {
+  let result = await claim.claimsCreateByApp(data, context)
+  return { result: JSON.stringify(result)}
 });
 
 // ========================================================================
 // 【アプリからのトリガー】請求情報を(GCP)CloudSQL:MySQLのテーブルから取得
 // ========================================================================
 exports.onCallClaimsSelect = functions.https.onCall(async (data, context) => {
-  let returnContext = await claim.claimsSelectByApp(data, context)
-  return returnContext
+  let result = await claim.claimsSelectByApp(data, context)
+  return { result: JSON.stringify(result)}
 });

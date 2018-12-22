@@ -68,10 +68,10 @@ async function select(data) {
 
   try {
 
-    let results = await connect.query('SELECT * FROM claims')
+    let record = await connect.query('SELECT * FROM claims')
     connect.end()
 
-    return results
+    return record
 
   } catch (err) {
     throw new Error(err)

@@ -42,14 +42,14 @@ function create(receiver, sender) {
     receiver: receiver,
     sender: sender
   })
-  .then(() => {
+  .then((result) => {
     console.log('Successfully notifications add.')
-    return true
+    return result.id
   })
   .catch(err => {
     // エラー処理
     console.error('Error notifications updated: ', err)
-    return false
+    return ''
   })
 }
 

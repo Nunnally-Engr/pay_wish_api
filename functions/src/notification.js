@@ -4,28 +4,23 @@ const admin = require('firebase-admin')
 const users = require('./table/users')
 const notifications = require('./table/notifications')
 
-async function paymentNotifier(change, context, document) {
+// 定数
+const options = { priority: 'high' }
+
+async function paymentNotifier(receiver) {
 
   try {
-
-    // =======================================
-    // 変数
-    // =======================================    
-    const notificationsKey = context.params.notificationsKey // Notifications Key
 
     // =======================================
     // FCMへ登録
     // =======================================
     // 受信者
-    const receiverUid = document.receiver
+    const receiverUid = receiver
 
     // デバイス通知トークンを取得します
     const user = await users.getUsersInfo(receiverUid)
 
     // 通知内容
-    let options = {
-      priority: 'high'
-    }
     const payload = {
       notification: {
         title: 'タイトル：請求がきたよ(｡□｡；)！！',
@@ -54,19 +49,8 @@ async function paymentNotifier(change, context, document) {
           // Users.deviceToken をNullにする処理
           users.deleteUsersDeviceToken(receiverUid)
         }
-      } else {
-
-        // =======================================
-        // 【正常】FCMへ登録したら、notificationsから削除
-        // =======================================
-        notifications.deleteNotification(notificationsKey)
       }
     })
-
-    // =======================================
-    // 処理終了
-    // =======================================
-    console.log('Successfully device payment notification.')
 
   } catch (error) {
     console.error(error.toString())
